@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>idea_gacha_v23</title>
+<title>idea_gacha_v24</title>
 <style>
   :root{
     --card-w: 320px;
@@ -13,22 +13,29 @@
   }
   *{box-sizing:border-box}
   body{
-    margin:0; background:#f6f7f8; height:100vh; display:flex; align-items:center; justify-content:center; font-family:"Noto Sans TC", system-ui, -apple-system, sans-serif;
+    margin:0;
+    background:#f6f7f8;
+    /* 改用 min-height:100dvh 解決 iOS Safari 100vh 視窗高度誤差 */
+    min-height:100dvh;
+    display:flex; align-items:center; justify-content:center;
+    font-family:"Noto Sans TC", system-ui, -apple-system, sans-serif;
+    /* 安全區與上下留白，避免上方被切掉 */
+    padding-block: calc(env(safe-area-inset-top, 0px) + 12px) 24px;
+    padding-inline: 12px;
   }
   .stage{display:flex; align-items:center; gap:44px;}
   .col{display:flex; flex-direction:column; align-items:center;}
-  .label{margin-bottom:10px; color:#7a7a7a; font-weight:600; letter-spacing:.5px}
+  .label{margin-bottom:12px; color:#7a7a7a; font-weight:600; letter-spacing:.5px}
   .card{
     width:var(--card-w); height:var(--card-h); background:#fff; border-radius:22px; box-shadow:0 18px 45px rgba(10,20,40,.08);
     display:flex; align-items:center; justify-content:center; padding:28px; text-align:center;
   }
   .card p{
     margin:0; color:var(--main-color); font-weight:800; line-height:1.26;
-    /* 修正：改用自然換行 + 任意位置換行，避免文字溢出卡片 */
     white-space: normal;
-    word-break: normal;      /* 讓 CJK 依預設規則換行 */
-    overflow-wrap: anywhere; /* 必要時任何位置可折行（含英文長字串） */
-    line-break: loose;       /* 提升 CJK 換行效果 */
+    word-break: normal;
+    overflow-wrap: anywhere;
+    line-break: loose;
     font-size:clamp(26px, 4vw, 40px);
     transition: color 0.3s ease, opacity 0.3s ease;
     max-width:100%;
@@ -41,8 +48,12 @@
   #dice:active{transform:scale(.96) rotate(10deg)}
   #dice span{font-size:34px; color:#fff}
   @media (max-width: 840px){
-    :root{--card-w: 86vw; --card-h: 58vh}
-    .stage{flex-direction:column; gap:18px}
+    /* 手機版：卡片更窄更矮、間距更小，避免被切掉 */
+    :root{
+      --card-w: 92vw;
+      --card-h: clamp(300px, 50vh, 520px);
+    }
+    .stage{flex-direction:column; gap:12px}
   }
 </style>
 </head>
