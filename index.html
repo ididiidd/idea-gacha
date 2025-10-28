@@ -4,11 +4,11 @@
 <meta charset="UTF-8" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>idea_gacha_v25</title>
+<title>idea_gacha_v26</title>
 <style>
   :root{
     --card-w: 320px;
-    --card-h: 380px;              /* default desktop height slightly shorter */
+    --card-h: 380px;              /* desktop */
     --main-color: #1f2630;
   }
   *{box-sizing:border-box}
@@ -16,12 +16,13 @@
   body{
     margin:0;
     background:#f6f7f8;
-    min-height:100dvh;            /* fix iOS toolbars */
+    min-height:100dvh;
     display:flex; align-items:center; justify-content:center;
     font-family:"Noto Sans TC", system-ui, -apple-system, sans-serif;
-    padding: 12px;
-    padding-top: calc(env(safe-area-inset-top, 0px) + 12px);
-    overflow:hidden;              /* avoid page scroll on mobile */
+    padding-inline:12px;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 18px);  /* 多留一點，避免標題被吃掉 */
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+    overflow:hidden;              /* 避免頁面滑動 */
   }
   .stage{display:flex; align-items:center; gap:32px}
   .col{display:flex; flex-direction:column; align-items:center;}
@@ -33,17 +34,14 @@
   .card p{
     margin:0; color:var(--main-color); font-weight:800; line-height:1.22;
     white-space: normal;
-    word-break: normal;
     overflow-wrap: anywhere;
-    line-break: loose;
     font-size:clamp(24px, 3.6vw, 38px);
     transition: color 0.3s ease, opacity 0.3s ease;
     max-width:100%;
   }
   #dice{
     width:60px; height:60px; border-radius:16px; background:var(--main-color); display:grid; place-items:center; cursor:pointer; user-select:none;
-    box-shadow:0 10px 24px rgba(10,20,40,.15); transition:transform .3s ease, filter .3s ease;
-    position:relative; top:0;
+    box-shadow:0 10px 24px rgba(10,20,40,.15); transition:transform .3s ease;
   }
   #dice:active{transform:scale(.96) rotate(10deg)}
   #dice span{font-size:32px; color:#fff}
@@ -52,14 +50,14 @@
   @media (max-width: 840px){
     :root{
       --card-w: 92vw;
-      /* flatter cards; adaptive height tuned to fit without page scroll */
-      --card-h: clamp(220px, 38vh, 420px);
+      /* 更扁，確保兩張卡 + 骰子 + 標題都在一屏 */
+      --card-h: clamp(200px, 34vh, 360px);
     }
-    .stage{flex-direction:column; gap:8px}
-    .label{margin-bottom:6px}
-    .card{padding:18px; border-radius:20px}
-    .card p{font-size:clamp(20px, 5.2vw, 32px)}
-    #dice{width:56px; height:56px; border-radius:14px}
+    .stage{flex-direction:column; gap:14px}       /* 與兩側間距拉開一點 */
+    .label{margin-bottom:6px; font-size:14px}
+    .card{padding:16px; border-radius:20px}
+    .card p{font-size:clamp(20px, 5vw, 30px)}
+    #dice{width:58px; height:58px; border-radius:14px}
     #dice span{font-size:30px}
   }
 </style>
@@ -111,18 +109,15 @@ function pick(a){return a[Math.floor(Math.random()*a.length)]}
 /* Auto-fit helper: shrink text if it overflows its card, min 18px */
 function fitText(el){
   const parent = el.parentElement;
-  const styles = window.getComputedStyle(el);
-  let size = parseFloat(styles.fontSize);
+  let size = parseFloat(getComputedStyle(el).fontSize);
   const min = 18;
-  // reset to computed so repeated fits can grow when needed
-  el.style.fontSize = '';
-  size = parseFloat(window.getComputedStyle(el).fontSize);
-  const maxLoops = 60;
-  let loops = 0;
-  while(el.scrollHeight > parent.clientHeight - 6 && size > min && loops < maxLoops){
+  el.style.fontSize = ''; // reset
+  size = parseFloat(getComputedStyle(el).fontSize);
+  let guard = 0;
+  while(el.scrollHeight > parent.clientHeight - 6 && size > min && guard < 80){
     size -= 1;
     el.style.fontSize = size + 'px';
-    loops++;
+    guard++;
   }
 }
 
@@ -153,12 +148,11 @@ const rightEl=document.getElementById('rightText');
 
 dice.addEventListener('click',()=>{
   dice.style.transform='scale(1.06) rotate(20deg)';
-  setTimeout(()=>dice.style.transform='none',260);
+  setTimeout(()=>dice.style.transform='none',240);
   shuffleFlash(leftEl, readers, 720);
   shuffleFlash(rightEl, topics, 720);
 });
 
-// 初始狀態保持空白；同時在 resize 時重新擬合
 window.addEventListener('load', ()=>{
   leftEl.textContent = '';
   rightEl.textContent = '';
@@ -170,7 +164,7 @@ window.addEventListener('resize', ()=>{
   resizeTimer = setTimeout(()=>{
     fitText(leftEl);
     fitText(rightEl);
-  }, 120);
+  }, 100);
 });
 </script>
 </body>
