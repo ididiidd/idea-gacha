@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>idea_gacha_v23</title>
+<style>
+  :root{
+    --card-w: 320px;
+    --card-h: 440px;
+    --main-color: #1f2630;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:#f6f7f8; height:100vh; display:flex; align-items:center; justify-content:center; font-family:"Noto Sans TC", system-ui, -apple-system, sans-serif;
+  }
+  .stage{display:flex; align-items:center; gap:44px;}
+  .col{display:flex; flex-direction:column; align-items:center;}
+  .label{margin-bottom:10px; color:#7a7a7a; font-weight:600; letter-spacing:.5px}
+  .card{
+    width:var(--card-w); height:var(--card-h); background:#fff; border-radius:22px; box-shadow:0 18px 45px rgba(10,20,40,.08);
+    display:flex; align-items:center; justify-content:center; padding:28px; text-align:center;
+  }
+  .card p{
+    margin:0; color:var(--main-color); font-weight:800; line-height:1.26;
+    /* 修正：改用自然換行 + 任意位置換行，避免文字溢出卡片 */
+    white-space: normal;
+    word-break: normal;      /* 讓 CJK 依預設規則換行 */
+    overflow-wrap: anywhere; /* 必要時任何位置可折行（含英文長字串） */
+    line-break: loose;       /* 提升 CJK 換行效果 */
+    font-size:clamp(26px, 4vw, 40px);
+    transition: color 0.3s ease, opacity 0.3s ease;
+    max-width:100%;
+  }
+  #dice{
+    width:64px; height:64px; border-radius:16px; background:var(--main-color); display:grid; place-items:center; cursor:pointer; user-select:none;
+    box-shadow:0 10px 24px rgba(10,20,40,.15); transition:transform .3s ease, filter .3s ease;
+    position:relative; top:0;
+  }
+  #dice:active{transform:scale(.96) rotate(10deg)}
+  #dice span{font-size:34px; color:#fff}
+  @media (max-width: 840px){
+    :root{--card-w: 86vw; --card-h: 58vh}
+    .stage{flex-direction:column; gap:18px}
+  }
+</style>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <div class="col">
+      <div class="label">請跟...</div>
+      <div class="card"><p id="leftText"></p></div>
+    </div>
+    <div id="dice" aria-label="roll"><span>🎲</span></div>
+    <div class="col">
+      <div class="label">聊...</div>
+      <div class="card"><p id="rightText"></p></div>
+    </div>
+  </div>
+
+<script>
+const readers = [
+'內向者','職場人','創業者','自媒體網紅','文案工作者','你媽','你的老闆','你的同事','管理員伯伯','愛碎唸主管',
+'你的姪子','爆肝工程師','會計小姐','設計師','偷聽你聊天的捷運乘客','早餐店阿姨','樓上很吵的鄰居','很愛推托的社區主委','里長伯','便利商店店員',
+'故事創作者','插畫家','詩人','導演','自由工作者','文青','不紅的網紅','剪輯師','賣豬肉的','手機貼膜員',
+'Podcast 主持人','想開書店的人','打工換宿者','AI焦慮者','廢文專家','體育老師','科幻小說家','餐飲外送員','諾貝爾文學獎得主','不給你看 IG 私帳的朋友',
+'蘇格拉底','康熙皇帝','莎士比亞','愛因斯坦','莊子','李白','蘇東坡','劉備','亨利八世','曹操',
+'柏拉圖','尼采','佛陀','莫札特','達文西','慈禧太后','佛洛伊德','國父 孫文','凱薩大帝','秦始皇',
+'任何你討厭的政治人物','你上次投的總統','相信外星人的阿姨','地平說信徒','長輩圖達人','戒手機的人','鍵盤哲學家','靈修上班族','母胎單身','辦公室園藝者',
+'每天都看星座運勢的司機','想戒糖的螞蟻人','陰謀論男子','末世論者','算命婆婆','覺得自己是貓的人','正在夢遊的人','一隻黃金鼠','永遠懷舊的人','不看新聞的人',
+'土地公爺爺','媽祖','有握手潔癖的人','討厭新科技的文具店老闆','吉伊卡哇裡的小八','野比大雄','蒙其·D·魯夫','真新鎮的小智','旅居海外的台灣人','堅持用Windows XP的設計師',
+'石內卜教授','野原廣志','不能曬到太陽的人','只剩三天壽命的人','七個小矮人中愛生氣的那個','你自己','寫心靈雞湯的中年男子','深夜便利商店的店員','每天說要離職的人','保留上一世記憶的人',
+'你的前男/女友','10 年前的你','10 年後的你','90 歲的你','今天早上出門前的你','你的曾曾曾孫','你的曾曾曾祖父','你自己'
+];
+
+const topics = [
+  '你最討厭的人','你上一餐吃了什麼','你昨天做的夢','你手機裡最新的一張照片','你最常打開的 App','你現在的心情','你最想丟掉的東西','你最近一次講電話的內容','你的夢想','你最近一次失眠',
+  '你房間裡最舊的東西','你房間的味道','你最近喝的飲料','你今天的穿搭','你上次出國的行程','你曾經最尷尬的時刻','你無法拒絕的食物','你放棄的某件事','你最後哭的原因','你覺得幸福的瞬間',
+  '《吉伊卡哇》','《鬼滅之刃》','《新世紀福音戰士》','《進擊的巨人》','《哈利波特》','你最近看完的日劇','你看到一半就不看的電影','你最愛的一首歌','你最大的恐懼','你覺得最被高估的作品',
+  '柯南的最終 Boss 是誰','你最想吃吃看的寶可夢','你最喜歡的 YouTuber','你最討厭的 YouTuber','你最常重播的影片','10 公斤的手機殼','最新的 iPhone','手遊課金','戀愛綜藝','你下一部想拍的短片',
+  '最有印象的一支廣告','沒有靈感的時候怎麼辦','一次趕工/趕進度的經驗','你最想寫的故事','你最喜歡的比喻','你覺得最被誤解的職業','一句被誤解的文案','公園長椅上的鴿子','遺書','你刪掉又重寫過的段落',
+  '你討厭但必須用的創意套路','你希望被引用的一句話','你最無聊的作品標題','靈感枯竭時的自己','一個你偷來的點子','你放不下的一段文字','你崇拜但不敢模仿的人','你覺得創意的極限是什麼','自由意志','命運的惡作劇',
+  '存在的意義','理性與感性','自我與他人','人為什麼會孤獨','什麼是幸福','為什麼人要說謊','你相信命運嗎','你覺得「真實」是什麼','什麼是成熟','為什麼要原諒',
+  '你最想忘掉的事','為什麼人需要痛苦','你覺得愛是什麼','你害怕變老嗎','你覺得時間能治癒嗎','你想留下什麼','你相信轉世嗎','人類最偉大的錯誤','為什麼我們想被理解','如果你有無限的財富',
+  '道德的界線','你會救陌生人嗎','如果你能隱形 3 秒','當沒人看見時你是誰','死亡','靈魂存在嗎','如果你不是你媽生的','模擬理論','平行宇宙','人性本善嗎',
+  '如果你只能說一個字','人生的出口在哪裡','如果世界沒有文字','如果你忘記了自己','你覺得真心話是什麼','我的冰箱能烤雞排','我能提前看到 5 秒後的結果','我可以在夢中保持清醒','我一天能傳送一個人去荒島','我最想變成什麼動物',
+  '如果這輩子只能吃一種甜點','世界只是一個模擬遊戲','人類根本沒有登陸過月球','貓在秘密統治世界','神不存在','所有人都是 NPC','一代不如一代','我哪方面比你強'
+];
+
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+
+function shuffleFlash(el, pool, ms=700){
+  const t0=performance.now();
+  function step(t){
+    const dt=t-t0;
+    if(dt<ms){
+      if(Math.random()<0.9){
+        el.style.opacity=0.3;
+        el.style.color='rgba(31,38,48,0.3)';
+        el.textContent=pick(pool);
+      }
+      requestAnimationFrame(step);
+    }else{
+      el.style.opacity=1;
+      el.style.color='var(--main-color)';
+      el.textContent=pick(pool);
+    }
+  }
+  requestAnimationFrame(step);
+}
+
+const dice=document.getElementById('dice');
+const leftEl=document.getElementById('leftText');
+const rightEl=document.getElementById('rightText');
+
+dice.addEventListener('click',()=>{
+  dice.style.transform='scale(1.06) rotate(20deg)';
+  setTimeout(()=>dice.style.transform='none',260);
+  shuffleFlash(leftEl, readers, 720);
+  shuffleFlash(rightEl, topics, 720);
+});
+
+// 初始狀態保持空白
+window.addEventListener('load', ()=>{
+  leftEl.textContent = '';
+  rightEl.textContent = '';
+});
+</script>
+</body>
+</html>
