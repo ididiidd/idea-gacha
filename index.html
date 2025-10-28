@@ -4,56 +4,63 @@
 <meta charset="UTF-8" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>idea_gacha_v24</title>
+<title>idea_gacha_v25</title>
 <style>
   :root{
     --card-w: 320px;
-    --card-h: 440px;
+    --card-h: 380px;              /* default desktop height slightly shorter */
     --main-color: #1f2630;
   }
   *{box-sizing:border-box}
+  html,body{height:100%}
   body{
     margin:0;
     background:#f6f7f8;
-    /* 改用 min-height:100dvh 解決 iOS Safari 100vh 視窗高度誤差 */
-    min-height:100dvh;
+    min-height:100dvh;            /* fix iOS toolbars */
     display:flex; align-items:center; justify-content:center;
     font-family:"Noto Sans TC", system-ui, -apple-system, sans-serif;
-    /* 安全區與上下留白，避免上方被切掉 */
-    padding-block: calc(env(safe-area-inset-top, 0px) + 12px) 24px;
-    padding-inline: 12px;
+    padding: 12px;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 12px);
+    overflow:hidden;              /* avoid page scroll on mobile */
   }
-  .stage{display:flex; align-items:center; gap:44px;}
+  .stage{display:flex; align-items:center; gap:32px}
   .col{display:flex; flex-direction:column; align-items:center;}
-  .label{margin-bottom:12px; color:#7a7a7a; font-weight:600; letter-spacing:.5px}
+  .label{margin-bottom:10px; color:#7a7a7a; font-weight:600; letter-spacing:.5px}
   .card{
     width:var(--card-w); height:var(--card-h); background:#fff; border-radius:22px; box-shadow:0 18px 45px rgba(10,20,40,.08);
-    display:flex; align-items:center; justify-content:center; padding:28px; text-align:center;
+    display:flex; align-items:center; justify-content:center; padding:22px; text-align:center;
   }
   .card p{
-    margin:0; color:var(--main-color); font-weight:800; line-height:1.26;
+    margin:0; color:var(--main-color); font-weight:800; line-height:1.22;
     white-space: normal;
     word-break: normal;
     overflow-wrap: anywhere;
     line-break: loose;
-    font-size:clamp(26px, 4vw, 40px);
+    font-size:clamp(24px, 3.6vw, 38px);
     transition: color 0.3s ease, opacity 0.3s ease;
     max-width:100%;
   }
   #dice{
-    width:64px; height:64px; border-radius:16px; background:var(--main-color); display:grid; place-items:center; cursor:pointer; user-select:none;
+    width:60px; height:60px; border-radius:16px; background:var(--main-color); display:grid; place-items:center; cursor:pointer; user-select:none;
     box-shadow:0 10px 24px rgba(10,20,40,.15); transition:transform .3s ease, filter .3s ease;
     position:relative; top:0;
   }
   #dice:active{transform:scale(.96) rotate(10deg)}
-  #dice span{font-size:34px; color:#fff}
+  #dice span{font-size:32px; color:#fff}
+
+  /* --- Mobile layout --- */
   @media (max-width: 840px){
-    /* 手機版：卡片更窄更矮、間距更小，避免被切掉 */
     :root{
       --card-w: 92vw;
-      --card-h: clamp(300px, 50vh, 520px);
+      /* flatter cards; adaptive height tuned to fit without page scroll */
+      --card-h: clamp(220px, 38vh, 420px);
     }
-    .stage{flex-direction:column; gap:12px}
+    .stage{flex-direction:column; gap:8px}
+    .label{margin-bottom:6px}
+    .card{padding:18px; border-radius:20px}
+    .card p{font-size:clamp(20px, 5.2vw, 32px)}
+    #dice{width:56px; height:56px; border-radius:14px}
+    #dice span{font-size:30px}
   }
 </style>
 </head>
@@ -101,6 +108,24 @@ const topics = [
 
 function pick(a){return a[Math.floor(Math.random()*a.length)]}
 
+/* Auto-fit helper: shrink text if it overflows its card, min 18px */
+function fitText(el){
+  const parent = el.parentElement;
+  const styles = window.getComputedStyle(el);
+  let size = parseFloat(styles.fontSize);
+  const min = 18;
+  // reset to computed so repeated fits can grow when needed
+  el.style.fontSize = '';
+  size = parseFloat(window.getComputedStyle(el).fontSize);
+  const maxLoops = 60;
+  let loops = 0;
+  while(el.scrollHeight > parent.clientHeight - 6 && size > min && loops < maxLoops){
+    size -= 1;
+    el.style.fontSize = size + 'px';
+    loops++;
+  }
+}
+
 function shuffleFlash(el, pool, ms=700){
   const t0=performance.now();
   function step(t){
@@ -116,6 +141,7 @@ function shuffleFlash(el, pool, ms=700){
       el.style.opacity=1;
       el.style.color='var(--main-color)';
       el.textContent=pick(pool);
+      fitText(el);
     }
   }
   requestAnimationFrame(step);
@@ -132,10 +158,19 @@ dice.addEventListener('click',()=>{
   shuffleFlash(rightEl, topics, 720);
 });
 
-// 初始狀態保持空白
+// 初始狀態保持空白；同時在 resize 時重新擬合
 window.addEventListener('load', ()=>{
   leftEl.textContent = '';
   rightEl.textContent = '';
+});
+
+let resizeTimer;
+window.addEventListener('resize', ()=>{
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(()=>{
+    fitText(leftEl);
+    fitText(rightEl);
+  }, 120);
 });
 </script>
 </body>
