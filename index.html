@@ -341,6 +341,13 @@ const leftEl=document.getElementById('leftText');
 const rightEl=document.getElementById('rightText');
 
 dice.addEventListener('click',()=>{
+  const snd=document.getElementById('diceSound');
+  if(snd){
+    try{
+      snd.currentTime=0;
+      snd.play();
+    }catch(e){}
+  }
   dice.style.transform='scale(1.06) rotate(20deg)';
   setTimeout(()=>dice.style.transform='none',240);
   shuffleFlash(leftEl, readers, 720);
@@ -361,5 +368,7 @@ window.addEventListener('resize', ()=>{
   }, 100);
 });
 </script>
+
+<audio id="diceSound" src="dice.WAV" preload="auto"></audio>
 </body>
 </html>
